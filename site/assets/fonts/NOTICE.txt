@@ -1,0 +1,7 @@
+Geist et Geist Mono
+Fontes publiées par Vercel sous licence SIL Open Font License 1.1.
+Source : https://github.com/vercel/geist-font
+
+Les fichiers .woff2 de ce répertoire sont les versions variables extraites du
+paquet npm « geist ». Elles sont auto-hébergées volontairement : le site
+n'effectue aucune requête vers un CDN de polices.

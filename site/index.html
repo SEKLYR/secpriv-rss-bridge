@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>secpriv-rss-bridge - Flux RSS pour la sécurité privée - SEKLYR</title>
+  <meta name="description" content="Des flux RSS faits maison pour les agents de sécurité privée : le Journal officiel filtré et résumé, une URL à coller dans ton lecteur RSS.">
+  <link rel="icon" type="image/png" href="assets/seklyr-mark.png">
+  <link rel="alternate" type="application/rss+xml" title="Veille sécurité privée - Journal officiel" href="legifrance-jorf.feed.xml">
+  <link rel="preload" href="assets/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face {
+      font-family: "Geist";
+      src: url("assets/fonts/Geist-Variable.woff2") format("woff2-variations");
+      font-weight: 100 900;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Geist Mono";
+      src: url("assets/fonts/GeistMono-Variable.woff2") format("woff2-variations");
+      font-weight: 100 900;
+      font-display: swap;
+    }
+
+    :root {
+      --color-bg: #0e0f14;
+      --color-bg-surface: #16181d;
+      --color-bg-elevated: #1e2027;
+      --color-border: #323741;
+      --color-border-subtle: #222530;
+      --color-accent: #5b5cff;
+      --color-accent-hover: #4a4bdd;
+      --color-accent-muted: #2a2b6e;
+      --color-text-primary: #f5f5f5;
+      --color-text-secondary: #a3a3a3;
+      --color-text-muted: #7d8494;
+      --color-success: #22c55e;
+      --color-warning: #f59e0b;
+      --color-danger: #ef4444;
+      --font-sans: "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--color-bg);
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+    ::selection { background: var(--color-accent-muted); color: var(--color-text-primary); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #333; }
+
+    a { color: inherit; }
+    p { margin: 0 0 1rem; }
+    h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+    code, pre { font-family: var(--font-mono); font-size: 0.85em; }
+    pre {
+      margin: 0 0 1rem;
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-bg-surface);
+      overflow-x: auto;
+      color: var(--color-text-secondary);
+    }
+    code:not(pre code) {
+      padding: 0.1em 0.35em;
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-bg-surface);
+      color: var(--color-text-secondary);
+      word-break: break-all;
+    }
+
+    .label-mono {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .container { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1.5rem; }
+    @media (min-width: 64rem) { .container { padding-inline: 2rem; } }
+
+    /* En-tête - même barre que le site vitrine */
+    header.top {
+      position: sticky; top: 0; z-index: 40;
+      border-bottom: 1px solid var(--color-border-subtle);
+      background: rgb(14 15 20 / 0.9);
+      backdrop-filter: blur(8px);
+    }
+    header.top .container { display: flex; height: 3.5rem; align-items: center; justify-content: space-between; }
+    .brand {
+      display: flex; align-items: center; gap: 0.625rem;
+      font-size: 0.875rem; font-weight: 600; letter-spacing: 0.14em; text-decoration: none;
+    }
+    .brand img { width: 1.5rem; height: 1.5rem; }
+    header.top nav ul { display: flex; gap: 1.75rem; margin: 0; padding: 0; list-style: none; }
+    header.top nav a { color: var(--color-text-secondary); text-decoration: none; transition: color 0.2s; }
+    header.top nav a:hover { color: var(--color-text-primary); }
+    @media (max-width: 40rem) { header.top nav { display: none; } }
+
+    /* Hero */
+    .hero { padding-block: 5rem; }
+    @media (min-width: 64rem) { .hero { padding-block: 7rem; } }
+    .hero .kicker { color: var(--color-accent); margin-bottom: 1rem; }
+    .hero h1 { font-size: clamp(2rem, 4.5vw, 3.25rem); line-height: 1.1; max-width: 46rem; }
+    .hero .lead { margin-top: 1.5rem; max-width: 40rem; font-size: 1.1rem; color: var(--color-text-secondary); }
+    .hero .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.75rem; }
+    .tag { border: 1px solid var(--color-border-subtle); padding: 0.25rem 0.5rem; color: var(--color-text-secondary); }
+
+    /* Sections numérotées */
+    section.block { border-top: 1px solid var(--color-border-subtle); padding-block: 4rem; }
+    section.block > .kicker { color: var(--color-accent); margin-bottom: 0.75rem; }
+    section.block h2 { font-size: 1.6rem; margin-bottom: 1rem; max-width: 40rem; }
+    section.block .intro { max-width: 42rem; color: var(--color-text-secondary); }
+
+    /* Boîte URL du flux */
+    .feed-url {
+      display: grid; grid-template-columns: 1fr auto; gap: 0;
+      margin-block: 1.5rem; max-width: 46rem;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-surface);
+    }
+    .feed-url code {
+      padding: 0.9rem 1rem; border: 0; background: transparent;
+      color: var(--color-text-primary); word-break: break-all; font-size: 0.9rem;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0 1rem; min-height: 2.75rem; border: 0; cursor: pointer;
+      background: var(--color-accent); color: #fff; font: inherit; font-weight: 600; font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--color-accent-hover); }
+    .btn.ghost { background: transparent; color: var(--color-text-secondary); border-left: 1px solid var(--color-border); }
+    .btn.ghost:hover { color: var(--color-text-primary); background: var(--color-bg-elevated); }
+
+    /* Cartes */
+    .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+    .card {
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-bg-surface);
+      padding: 1.25rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, translate 0.3s ease;
+    }
+    .card:hover {
+      border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border-subtle));
+      box-shadow: 0 0 32px rgb(91 92 255 / 0.13);
+    }
+    @media (prefers-reduced-motion: no-preference) { .card:hover { translate: 0 -2px; } }
+    .card .step { color: var(--color-text-muted); margin-bottom: 0.5rem; }
+    .card h3 { font-size: 1rem; margin-bottom: 0.4rem; }
+    .card p { margin: 0; color: var(--color-text-secondary); font-size: 0.925rem; }
+
+    /* Entrées du flux rendues en direct */
+    .feed-meta { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: center; margin-bottom: 1.25rem; color: var(--color-text-muted); }
+    .feed-meta .dot { display: inline-block; width: 0.5rem; height: 0.5rem; background: var(--color-success); margin-right: 0.5rem; vertical-align: middle; }
+    .entries { display: grid; gap: 1rem; }
+    article.entry { display: grid; gap: 0.6rem; }
+    article.entry .head { display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; align-items: center; }
+    article.entry .nature { border: 1px solid var(--color-border-subtle); padding: 0.15rem 0.4rem; color: var(--color-text-muted); }
+    article.entry .date { color: var(--color-text-muted); }
+    article.entry h3 { font-size: 1.05rem; line-height: 1.35; }
+    article.entry h3 a { text-decoration: none; }
+    article.entry h3 a:hover { color: var(--color-accent); }
+    article.entry .summary p { margin: 0 0 0.6rem; color: var(--color-text-secondary); }
+    article.entry .summary p:last-child { margin-bottom: 0; }
+    article.entry .more { margin-top: 0.25rem; padding-top: 0.75rem; border-top: 1px solid var(--color-border-subtle); color: var(--color-text-secondary); }
+    article.entry .more a { color: var(--color-text-secondary); }
+    article.entry .more a:hover { color: var(--color-text-primary); }
+    .state { border: 1px solid var(--color-border-subtle); background: var(--color-bg-surface); padding: 1.25rem; color: var(--color-text-secondary); }
+    .state.error { border-color: color-mix(in srgb, var(--color-danger) 50%, var(--color-border-subtle)); }
+
+    /* Tableaux */
+    .table-wrap { overflow-x: auto; margin-block: 1rem 1.5rem; border: 1px solid var(--color-border-subtle); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.925rem; }
+    th, td { text-align: left; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--color-border-subtle); vertical-align: top; }
+    th { color: var(--color-text-muted); font-weight: 500; background: var(--color-bg-surface); }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { white-space: nowrap; }
+
+    ol.steps { margin: 0 0 1rem; padding-left: 1.25rem; color: var(--color-text-secondary); }
+    ol.steps li { margin-bottom: 0.5rem; }
+    ol.steps strong { color: var(--color-text-primary); font-weight: 600; }
+
+    footer.bottom { border-top: 1px solid var(--color-border-subtle); padding-block: 3rem; }
+    footer.bottom .container { display: flex; flex-wrap: wrap; gap: 1.5rem 3rem; justify-content: space-between; align-items: flex-start; }
+    footer.bottom p { margin: 0; max-width: 40rem; font-size: 0.85rem; color: var(--color-text-muted); }
+    footer.bottom .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+    .skip { position: absolute; left: -999px; top: 1rem; z-index: 50; background: var(--color-accent); color: #fff; padding: 0.5rem 1rem; }
+    .skip:focus { left: 1rem; }
+  </style>
+</head>
+<body>
+  <a href="#contenu" class="skip">Aller au contenu</a>
+
+  <header class="top">
+    <div class="container">
+      <a href="#" class="brand"><img src="assets/seklyr-mark.png" alt="" width="24" height="24">SEKLYR</a>
+      <nav aria-label="Navigation">
+        <ul>
+          <li><a class="label-mono" href="#flux">Le flux</a></li>
+          <li><a class="label-mono" href="#direct">En direct</a></li>
+          <li><a class="label-mono" href="#fonctionnement">Fonctionnement</a></li>
+          <li><a class="label-mono" href="#installation">Chez toi</a></li>
+          <li><a class="label-mono" href="https://seklyr.fr">seklyr.fr</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenu">
+    <section class="container hero">
+      <p class="label-mono kicker">secpriv-rss-bridge · outil libre</p>
+      <h1>Des flux RSS faits maison pour les agents de sécurité privée.</h1>
+      <p class="lead">Pas de newsletter, pas de compte, pas de pub : tu ajoutes une URL dans ton lecteur RSS et tu reçois ce qui te concerne, résumé en trois phrases.</p>
+      <div class="tags">
+        <span class="label-mono tag">Journal officiel</span>
+        <span class="label-mono tag">Livre VI du CSI</span>
+        <span class="label-mono tag">CNAPS</span>
+        <span class="label-mono tag">Mis à jour chaque matin</span>
+      </div>
+    </section>
+
+    <div class="container">
+      <section class="block" id="flux">
+        <p class="label-mono kicker">01 · Le flux Journal officiel</p>
+        <h2>Une URL, et le JO vient à toi.</h2>
+        <p class="intro">Dès qu'une loi, un décret ou un arrêté touche aux activités privées de sécurité (livre VI du code de la sécurité intérieure, CNAPS, cartes professionnelles, formation, sûreté aéroportuaire et portuaire…), il apparaît ici, avec un résumé en français clair de ce qui change pour toi sur le terrain.</p>
+        <div class="feed-url">
+          <code id="feed-url">legifrance-jorf.feed.xml</code>
+          <button type="button" class="btn ghost" id="copy" aria-label="Copier l'adresse du flux">Copier</button>
+        </div>
+        <p class="intro">Colle cette URL dans Feedly, Inoreader, NetNewsWire, Thunderbird ou n'importe quel lecteur RSS. Chaque entrée contient le titre officiel du texte, sa date de publication, un résumé et le lien vers le texte intégral sur Légifrance. Le Journal officiel ne publie que 2 ou 3 textes par mois sur le sujet, donc pas de spam.</p>
+      </section>
+
+      <section class="block" id="direct">
+        <p class="label-mono kicker">02 · En direct</p>
+        <h2>Ce que contient le flux aujourd'hui.</h2>
+        <p class="intro">Les entrées ci-dessous sont lues directement dans le fichier RSS publié, exactement ce que ton lecteur recevra.</p>
+        <div class="feed-meta label-mono" id="feed-meta" hidden></div>
+        <div class="entries" id="entries">
+          <div class="state" id="feed-state">Chargement du flux…</div>
+        </div>
+      </section>
+
+      <section class="block" id="fonctionnement">
+        <p class="label-mono kicker">03 · Comment ça marche</p>
+        <h2>Cinq étapes, une fois par jour.</h2>
+        <p class="intro"><code>legifrance-jorf.ts</code> tourne chaque matin sur GitHub Actions et enchaîne :</p>
+        <div class="grid" style="margin-top:1.5rem">
+          <div class="card">
+            <p class="label-mono step">Étape 1</p>
+            <h3>Recherche</h3>
+            <p>Sur l'API Légifrance (fonds JORF, 12 derniers mois) avec des expressions exactes : « sécurité privée », « activités privées de sécurité », « CNAPS », « livre VI du code de la sécurité intérieure »…</p>
+          </div>
+          <div class="card">
+            <p class="label-mono step">Étape 2</p>
+            <h3>Consultation</h3>
+            <p>Récupération du contenu intégral de chaque texte nouveau : visas, articles, signataires.</p>
+          </div>
+          <div class="card">
+            <p class="label-mono step">Étape 3</p>
+            <h3>Filtrage</h3>
+            <p>Un score de pertinence garde un texte si son titre parle de sécurité privée, s'il cite au moins trois articles du livre VI, ou si les termes métier sont assez présents et assez denses. Ça écarte le décret sur les contrats d'apprentissage qui cite « agent de sécurité » une fois toutes les 20 000 lignes, ou l'arrêté de nomination au collège du CNAPS.</p>
+          </div>
+          <div class="card">
+            <p class="label-mono step">Étape 4</p>
+            <h3>Résumé</h3>
+            <p>Par Gemini, en file d'attente cadencée pour tenir dans le plan gratuit. Le cache est sauvegardé après chaque résumé, un texte non résumé attend simplement le passage suivant.</p>
+          </div>
+          <div class="card">
+            <p class="label-mono step">Étape 5</p>
+            <h3>Publication</h3>
+            <p>Le flux RSS est régénéré depuis le cache. Un texte n'y entre qu'une fois résumé.</p>
+          </div>
+        </div>
+        <p class="intro" style="margin-top:2rem">Les fichiers de travail sont versionnés dans le dépôt, c'est la mémoire de l'outil :</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Fichier</th><th scope="col">Rôle</th></tr></thead>
+            <tbody>
+              <tr><td><code>legifrance-jorf.feed.xml</code></td><td>Le flux RSS, à mettre dans ton lecteur</td></tr>
+              <tr><td><code>legifrance-jorf.cache.json</code></td><td>Les textes retenus, leur contenu intégral et leur résumé</td></tr>
+              <tr><td><code>legifrance-jorf.ignored.json</code></td><td>Les textes écartés, avec leur titre, pour auditer le filtre</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="block" id="installation">
+        <p class="label-mono kicker">04 · Le faire tourner chez toi</p>
+        <h2>Trois clés, une commande.</h2>
+        <p class="intro">Il te faut <a href="https://deno.com">Deno</a> 2, un compte <a href="https://piste.gouv.fr">PISTE</a> avec une application abonnée à l'API Légifrance, et une clé <a href="https://aistudio.google.com">Gemini</a> (le plan gratuit suffit). Crée un fichier <code>.env</code> :</p>
+<pre>LEGIFRANCE_CLIENT_ID=...
+LEGIFRANCE_CLIENT_SECRET=...
+GEMINI_API_KEY=...</pre>
+        <p class="intro">Puis :</p>
+<pre>deno run --allow-net --allow-env --allow-read --allow-write --env-file=.env legifrance-jorf.ts</pre>
+        <p class="intro">Pour tester sans consommer ton quota Gemini, ajoute <code>--no-gemini</code> : le scrape et le flux se font, les résumés attendent.</p>
+
+        <h3 style="margin-top:2rem;font-size:1.1rem">Réglages</h3>
+        <p class="intro">Tout se pilote par variables d'environnement, aucune n'est obligatoire :</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Variable</th><th scope="col">Défaut</th><th scope="col">Rôle</th></tr></thead>
+            <tbody>
+              <tr><td><code>GEMINI_MODELS</code></td><td><code>gemini-3.5-flash-lite,gemini-3.6-flash</code></td><td>Chaîne de modèles. Un modèle en 404 ou à quota épuisé passe la main au suivant</td></tr>
+              <tr><td><code>GEMINI_RPM</code></td><td><code>10</code></td><td>Requêtes par minute autorisées</td></tr>
+              <tr><td><code>GEMINI_TPM</code></td><td><code>250000</code></td><td>Jetons par minute autorisés, budget glissant sur 60 s basé sur la consommation réelle</td></tr>
+              <tr><td><code>GEMINI_MAX_PER_RUN</code></td><td><code>100</code></td><td>Résumés maximum par passage, le reste attend le suivant</td></tr>
+              <tr><td><code>GEMINI_ENABLED</code></td><td><code>true</code></td><td><code>false</code> équivaut à <code>--no-gemini</code></td></tr>
+              <tr><td><code>FEED_URL</code></td><td>vide</td><td>URL publique du flux, pour le lien <code>self</code> du RSS</td></tr>
+              <tr><td><code>FEED_LINK</code></td><td>Légifrance</td><td>Lien du canal RSS</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="intro">Les termes de recherche, les motifs de pertinence, les exclusions de titres et les seuils sont en tête de <code>legifrance-jorf.ts</code>, commentés. Si tu vois un texte utile dans <code>legifrance-jorf.ignored.json</code>, ajoute un motif et il sera repris au passage suivant.</p>
+
+        <h3 style="margin-top:2rem;font-size:1.1rem">En automatique</h3>
+        <p class="intro">Le workflow <code>.github/workflows/legifrance-jorf.yml</code> lance le script chaque matin, commite les fichiers s'ils ont changé, puis publie les flux et cette page sur GitHub Pages. Il attend trois secrets dans le dépôt : <code>LEGIFRANCE_CLIENT_ID</code>, <code>LEGIFRANCE_CLIENT_SECRET</code> et <code>GEMINI_API_KEY</code>.</p>
+        <ol class="steps">
+          <li><strong>Pages</strong> : dans les réglages du dépôt, choisir la source « GitHub Actions ».</li>
+          <li><strong>Premier déploiement</strong> : à la main depuis l'onglet Actions, « Run workflow ». Les suivants sont automatiques.</li>
+        </ol>
+      </section>
+
+      <section class="block" id="a-savoir">
+        <p class="label-mono kicker">05 · À savoir</p>
+        <h2>Un coup d'avance, pas un avis juridique.</h2>
+        <p class="intro">Les résumés sont générés par une IA. Ils aident à repérer vite ce qui te concerne, ils ne remplacent pas la lecture du texte, et n'ont aucune valeur juridique. Le lien vers le texte intégral est dans chaque entrée.</p>
+        <p class="intro">Les textes proviennent de Légifrance (DILA), réutilisés sous <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/">Licence Ouverte 2.0</a>. Rien n'est modifié, seul le résumé est ajouté.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="bottom">
+    <div class="container">
+      <div>
+        <span class="brand"><img src="assets/seklyr-mark.png" alt="" width="24" height="24">SEKLYR</span>
+        <div class="badges">
+          <span class="label-mono tag">🇫🇷 Made in France · Bretagne</span>
+          <span class="label-mono tag">Code source ouvert</span>
+        </div>
+      </div>
+      <p>Un outil proposé par <a href="https://seklyr.fr">SEKLYR</a>, parce que suivre le Journal officiel ne devrait pas être un second métier. Polices Geist (Vercel, SIL OFL 1.1), aucune requête vers un CDN, aucun traceur.</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    /**
+     * Lecture du flux RSS publié à côté de cette page et rendu des entrées.
+     * Aucune dépendance, aucun HTML injecté : tout est construit en DOM.
+     */
+
+    /**
+     * @typedef {object} FeedEntry
+     * @property {string} nature      Nature du texte telle que publiée (LOI, DECRET, ARRETE…)
+     * @property {Date | null} date   Date de publication au JO
+     * @property {string} title       Titre officiel du texte
+     * @property {string} link        URL du texte intégral sur Légifrance
+     * @property {string[]} paragraphs Résumé, un élément par paragraphe
+     */
+
+    /**
+     * @typedef {object} Feed
+     * @property {FeedEntry[]} entries  Entrées du flux, dans l'ordre du fichier
+     * @property {Date | null} builtAt  Date de dernière génération du flux
+     */
+
+    const FEED_FILE = "legifrance-jorf.feed.xml";
+
+    /** Libellés français des natures de textes du JO. */
+    const NATURE_LABELS = {
+      LOI: "Loi",
+      DECRET: "Décret",
+      ARRETE: "Arrêté",
+      ORDONNANCE: "Ordonnance",
+      AVIS: "Avis",
+      DECISION: "Décision",
+    };
+
+    const dateFormatter = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+    /** URL absolue du flux, calculée depuis la page : juste sur Pages comme sur un domaine perso. */
+    const feedUrl = new URL(FEED_FILE, location.href).href;
+
+    /**
+     * Crée un élément avec, au choix, une classe et un contenu texte.
+     * @param {keyof HTMLElementTagNameMap} tag
+     * @param {{ className?: string, text?: string }} [options]
+     * @returns {HTMLElement}
+     */
+    const createElement = (tag, { className, text } = {}) => {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text !== undefined) element.textContent = text;
+      return element;
+    };
+
+    /**
+     * Texte d'un nœud enfant, ou chaîne vide s'il est absent.
+     * @param {ParentNode} parent
+     * @param {string} selector
+     * @returns {string}
+     */
+    const textOf = (parent, selector) => parent.querySelector(selector)?.textContent.trim() ?? "";
+
+    /**
+     * Libellé lisible d'une nature de texte, quelle que soit sa casse ou ses accents.
+     * @param {string} raw
+     * @returns {string}
+     */
+    const natureLabel = (raw) => {
+      const key = raw.normalize("NFD").replace(/\p{Diacritic}/gu, "").toUpperCase();
+      return NATURE_LABELS[key] ?? raw;
+    };
+
+    /**
+     * Date valide ou null.
+     * @param {string} value
+     * @returns {Date | null}
+     */
+    const parseDate = (value) => {
+      if (!value) return null;
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    };
+
+    /**
+     * Convertit un <item> RSS en entrée exploitable.
+     * @param {Element} item
+     * @returns {FeedEntry}
+     */
+    const parseItem = (item) => ({
+      nature: textOf(item, "category"),
+      date: parseDate(textOf(item, "pubDate")),
+      title: textOf(item, "title") || "Sans titre",
+      link: textOf(item, "link"),
+      paragraphs: textOf(item, "description")
+        .split(/\n\s*\n/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean),
+    });
+
+    /**
+     * Télécharge et parse le flux RSS.
+     * @returns {Promise<Feed>}
+     */
+    const loadFeed = async () => {
+      const response = await fetch(FEED_FILE, { cache: "no-cache" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const xml = new DOMParser().parseFromString(await response.text(), "application/xml");
+      if (xml.querySelector("parsererror")) throw new Error("XML invalide");
+
+      return {
+        entries: [...xml.querySelectorAll("item")].map(parseItem),
+        builtAt: parseDate(textOf(xml, "channel > lastBuildDate")),
+      };
+    };
+
+    /**
+     * Carte d'une entrée du flux.
+     * @param {FeedEntry} entry
+     * @returns {HTMLElement}
+     */
+    const renderEntry = (entry) => {
+      const article = createElement("article", { className: "card entry" });
+
+      const head = createElement("div", { className: "head" });
+      if (entry.nature) head.append(createElement("span", { className: "label-mono nature", text: natureLabel(entry.nature) }));
+      if (entry.date) {
+        const time = createElement("time", { className: "label-mono date", text: dateFormatter.format(entry.date) });
+        time.setAttribute("datetime", entry.date.toISOString().slice(0, 10));
+        head.append(time);
+      }
+
+      const title = createElement("h3");
+      const titleLink = createElement("a", { text: entry.title });
+      titleLink.href = entry.link;
+      titleLink.target = "_blank";
+      titleLink.rel = "noopener";
+      title.append(titleLink);
+
+      const summary = createElement("div", { className: "summary" });
+      summary.append(...entry.paragraphs.map((paragraph) => createElement("p", { text: paragraph })));
+
+      const more = createElement("p", { className: "more" });
+      const fullTextLink = createElement("a", { text: "Texte intégral sur Légifrance" });
+      fullTextLink.href = entry.link;
+      fullTextLink.target = "_blank";
+      fullTextLink.rel = "noopener";
+      more.append(fullTextLink);
+
+      article.append(head, title, summary, more);
+      return article;
+    };
+
+    /**
+     * Compteur et date de mise à jour au-dessus des entrées.
+     * @param {Feed} feed
+     */
+    const renderMeta = ({ entries, builtAt }) => {
+      const meta = document.getElementById("feed-meta");
+      const count = createElement("span");
+      count.append(createElement("span", { className: "dot" }), `${entries.length} texte${entries.length > 1 ? "s" : ""} dans le flux`);
+      meta.append(count);
+      if (builtAt) meta.append(createElement("span", { text: `Dernière mise à jour : ${dateFormatter.format(builtAt)}` }));
+      meta.hidden = false;
+    };
+
+    /**
+     * Message d'erreur à la place des entrées, avec un lien direct vers le fichier.
+     * @param {string} message
+     */
+    const renderError = (message) => {
+      const state = document.getElementById("feed-state");
+      state.className = "state error";
+      state.textContent = `${message} `;
+      const link = createElement("a", { text: "Ouvrir le flux directement" });
+      link.href = FEED_FILE;
+      state.append(link);
+    };
+
+    /** Affiche le flux dans la section « En direct ». */
+    const renderFeed = async () => {
+      try {
+        const feed = await loadFeed();
+        const container = document.getElementById("entries");
+        container.textContent = "";
+
+        if (feed.entries.length === 0) {
+          container.append(createElement("div", { className: "state", text: "Le flux est vide pour l'instant : aucun texte pertinent n'a encore été publié." }));
+          return;
+        }
+
+        container.append(...feed.entries.map(renderEntry));
+        renderMeta(feed);
+      } catch (error) {
+        renderError(`Impossible de lire le flux depuis cette page (${error instanceof Error ? error.message : error}).`);
+      }
+    };
+
+    /** Affiche l'URL du flux et branche le bouton Copier, avec repli sur la sélection du texte. */
+    const setupFeedUrl = () => {
+      const urlElement = document.getElementById("feed-url");
+      const copyButton = document.getElementById("copy");
+      urlElement.textContent = feedUrl;
+
+      const selectUrl = () => {
+        const range = document.createRange();
+        range.selectNodeContents(urlElement);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      };
+
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(feedUrl);
+          copyButton.textContent = "Copié";
+          setTimeout(() => { copyButton.textContent = "Copier"; }, 2000);
+        } catch {
+          selectUrl();
+        }
+      });
+    };
+
+    setupFeedUrl();
+    await renderFeed();
+  </script>
+</body>
+</html>
