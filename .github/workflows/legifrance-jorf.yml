@@ -1,0 +1,68 @@
+name: Veille sécurité privée — Journal officiel (Légifrance → RSS)
+
+on:
+  schedule:
+    - cron: "17 6 * * *" # tous les jours à 06:17 UTC (le JO paraît le matin)
+  workflow_dispatch:
+
+permissions:
+  contents: write # commit du cache et du flux
+  pages: write # déploiement GitHub Pages
+  id-token: write # requis par actions/deploy-pages
+
+concurrency:
+  group: legifrance-jorf
+  cancel-in-progress: false
+
+jobs:
+  legifrance-jorf:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Scrape Légifrance, résumés Gemini, génération du flux
+        env:
+          LEGIFRANCE_CLIENT_ID: ${{ secrets.LEGIFRANCE_CLIENT_ID }}
+          LEGIFRANCE_CLIENT_SECRET: ${{ secrets.LEGIFRANCE_CLIENT_SECRET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FEED_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/legifrance-jorf.feed.xml
+        run: deno run --allow-net --allow-env --allow-read --allow-write legifrance-jorf.ts
+
+      - name: Commit du cache et du flux s'ils ont changé
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add legifrance-jorf.cache.json legifrance-jorf.ignored.json legifrance-jorf.feed.xml
+          if git diff --cached --quiet; then
+            echo "Rien de nouveau."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore(legifrance-jorf): mise à jour du flux $(date -u +%Y-%m-%d)"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Déploiement Pages : à chaque changement, ou à la demande (workflow_dispatch) pour forcer une publication.
+      - name: Assemblage du site
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        run: cp *.feed.xml site/
+
+      - uses: actions/configure-pages@v5
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        with:
+          path: site
+
+      - uses: actions/deploy-pages@v4
+        id: deploy
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
