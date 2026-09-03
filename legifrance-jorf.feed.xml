@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>Veille sécurité privée – Journal officiel</title>
         <link>https://www.legifrance.gouv.fr/</link>
         <description>Lois, décrets et arrêtés publiés au JO concernant les activités privées de sécurité (livre VI du code de la sécurité intérieure, CNAPS).</description>
-        <lastBuildDate>Thu, 03 Sep 2026 01:02:14 GMT</lastBuildDate>
+        <lastBuildDate>Thu, 03 Sep 2026 01:57:23 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>secpriv-rss-bridge</generator>
         <language>fr</language>
         <copyright>Textes : Légifrance / DILA (Licence Ouverte 2.0). Résumés : générés par IA, sans valeur juridique.</copyright>
+        <atom:link href="https://seklyr.github.io/secpriv-rss-bridge/legifrance-jorf.feed.xml" rel="self" type="application/rss+xml"/>
         <item>
             <title><![CDATA[LOI n° 2026-798 du 18 août 2026 visant à offrir des réponses immédiates aux phénomènes troublant l'ordre public, la sécurité et la tranquillité de nos concitoyens (1)]]></title>
             <link>https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054707332</link>
