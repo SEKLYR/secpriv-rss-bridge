@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>secpriv-rss-bridge - Flux RSS pour la sécurité privée - SEKLYR</title>
-  <meta name="description" content="Des flux RSS faits maison pour les agents de sécurité privée : le Journal officiel filtré et résumé, une URL à coller dans ton lecteur RSS.">
+  <meta name="description" content="Flux RSS destinés aux agents de sécurité privée et aux gérants : le Journal officiel filtré et résumé, une URL à ajouter dans un lecteur RSS.">
   <link rel="icon" type="image/png" href="assets/seklyr-mark.png">
   <link rel="alternate" type="application/rss+xml" title="Veille sécurité privée - Journal officiel" href="legifrance-jorf.feed.xml">
   <link rel="preload" href="assets/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
@@ -206,10 +206,10 @@
       <a href="#" class="brand"><img src="assets/seklyr-mark.png" alt="" width="24" height="24">SEKLYR</a>
       <nav aria-label="Navigation">
         <ul>
-          <li><a class="label-mono" href="#flux">Le flux</a></li>
+          <li><a class="label-mono" href="#flux">Flux</a></li>
           <li><a class="label-mono" href="#direct">En direct</a></li>
           <li><a class="label-mono" href="#fonctionnement">Fonctionnement</a></li>
-          <li><a class="label-mono" href="#installation">Chez toi</a></li>
+          <li><a class="label-mono" href="#local">En local</a></li>
           <li><a class="label-mono" href="https://seklyr.fr">seklyr.fr</a></li>
         </ul>
       </nav>
@@ -218,33 +218,45 @@
 
   <main id="contenu">
     <section class="container hero">
-      <p class="label-mono kicker">secpriv-rss-bridge · outil libre</p>
-      <h1>Des flux RSS faits maison pour les agents de sécurité privée.</h1>
-      <p class="lead">Pas de newsletter, pas de compte, pas de pub : tu ajoutes une URL dans ton lecteur RSS et tu reçois ce qui te concerne, résumé en trois phrases.</p>
+      <p class="label-mono kicker">secpriv-rss-bridge</p>
+      <h1>Flux RSS pour la sécurité privée.</h1>
+      <p class="lead">Flux RSS destinés aux agents de sécurité privée ainsi qu'aux gérants. Aucune newsletter ni compte : l'URL s'ajoute dans un lecteur RSS tel que Feedly ou Thunderbird.</p>
       <div class="tags">
         <span class="label-mono tag">Journal officiel</span>
         <span class="label-mono tag">Livre VI du CSI</span>
         <span class="label-mono tag">CNAPS</span>
-        <span class="label-mono tag">Mis à jour chaque matin</span>
+        <span class="label-mono tag">Mise à jour quotidienne</span>
       </div>
     </section>
 
     <div class="container">
       <section class="block" id="flux">
-        <p class="label-mono kicker">01 · Le flux Journal officiel</p>
-        <h2>Une URL, et le JO vient à toi.</h2>
-        <p class="intro">Dès qu'une loi, un décret ou un arrêté touche aux activités privées de sécurité (livre VI du code de la sécurité intérieure, CNAPS, cartes professionnelles, formation, sûreté aéroportuaire et portuaire…), il apparaît ici, avec un résumé en français clair de ce qui change pour toi sur le terrain.</p>
+        <p class="label-mono kicker">01 · Flux disponibles</p>
+        <h2>Journal officiel Légifrance.</h2>
+        <div class="grid" style="margin-block:1.5rem">
+          <div class="card">
+            <p class="label-mono step" style="color:var(--color-success)">Disponible</p>
+            <h3>Journal officiel Légifrance</h3>
+            <p>Dès qu'une loi, un décret ou un arrêté touche aux activités privées de sécurité (livre VI du CSI, CNAPS, cartes professionnelles, formation, sûreté…), le texte arrive ici avec un résumé en français clair de ce qui change pour les agents et les gérants sur le terrain.</p>
+          </div>
+          <div class="card">
+            <p class="label-mono step" style="color:var(--color-warning)">À venir</p>
+            <h3>Actualités CNAPS</h3>
+            <p>Communiqués et actualités publiés par le Conseil national des activités privées de sécurité.</p>
+          </div>
+        </div>
         <div class="feed-url">
           <code id="feed-url">legifrance-jorf.feed.xml</code>
           <button type="button" class="btn ghost" id="copy" aria-label="Copier l'adresse du flux">Copier</button>
         </div>
-        <p class="intro">Colle cette URL dans Feedly, Inoreader, NetNewsWire, Thunderbird ou n'importe quel lecteur RSS. Chaque entrée contient le titre officiel du texte, sa date de publication, un résumé et le lien vers le texte intégral sur Légifrance. Le Journal officiel ne publie que 2 ou 3 textes par mois sur le sujet, donc pas de spam.</p>
+        <p class="intro">Chaque entrée de ce flux contient le titre tel quel du texte ainsi que sa date de publication, un résumé rédigé par IA et le lien vers le texte intégral sur <a href="https://www.legifrance.gouv.fr/">legifrance.gouv.fr</a>.</p>
+        <p class="intro">Le flux se met à jour tous les matins à 06:17 UTC via GitHub Actions.</p>
       </section>
 
       <section class="block" id="direct">
         <p class="label-mono kicker">02 · En direct</p>
-        <h2>Ce que contient le flux aujourd'hui.</h2>
-        <p class="intro">Les entrées ci-dessous sont lues directement dans le fichier RSS publié, exactement ce que ton lecteur recevra.</p>
+        <h2>Contenu actuel du flux.</h2>
+        <p class="intro">Les entrées ci-dessous sont lues directement dans le fichier RSS publié, telles qu'un lecteur RSS les reçoit.</p>
         <div class="feed-meta label-mono" id="feed-meta" hidden></div>
         <div class="entries" id="entries">
           <div class="state" id="feed-state">Chargement du flux…</div>
@@ -254,57 +266,58 @@
       <section class="block" id="fonctionnement">
         <p class="label-mono kicker">03 · Comment ça marche</p>
         <h2>Cinq étapes, une fois par jour.</h2>
-        <p class="intro"><code>legifrance-jorf.ts</code> tourne chaque matin sur GitHub Actions et enchaîne :</p>
+        <p class="intro"><code>legifrance-jorf.ts</code> tourne une fois par jour et enchaîne cinq étapes distinctes :</p>
         <div class="grid" style="margin-top:1.5rem">
           <div class="card">
             <p class="label-mono step">Étape 1</p>
             <h3>Recherche</h3>
-            <p>Sur l'API Légifrance (fonds JORF, 12 derniers mois) avec des expressions exactes : « sécurité privée », « activités privées de sécurité », « CNAPS », « livre VI du code de la sécurité intérieure »…</p>
+            <p>Sur l'API officielle Légifrance (fonds JORF, 12 derniers mois) avec des expressions exactes : « sécurité privée », « activités privées de sécurité », « CNAPS », « livre VI du code de la sécurité intérieure »…</p>
           </div>
           <div class="card">
             <p class="label-mono step">Étape 2</p>
             <h3>Consultation</h3>
-            <p>Récupération du contenu intégral de chaque texte nouveau : visas, articles, signataires.</p>
+            <p>Du contenu intégral de chaque nouveau texte : visas, articles, signataires.</p>
           </div>
           <div class="card">
             <p class="label-mono step">Étape 3</p>
             <h3>Filtrage</h3>
-            <p>Un score de pertinence garde un texte si son titre parle de sécurité privée, s'il cite au moins trois articles du livre VI, ou si les termes métier sont assez présents et assez denses. Ça écarte le décret sur les contrats d'apprentissage qui cite « agent de sécurité » une fois toutes les 20 000 lignes, ou l'arrêté de nomination au collège du CNAPS.</p>
+            <p>Par score de pertinence : un texte est gardé si son titre parle de sécurité privée, s'il cite au moins trois articles du livre VI, ou si les termes métier sont assez présents et assez denses dans le corps. Cela écarte par exemple le décret sur les contrats d'apprentissage qui cite « agent de sécurité » une fois toutes les 20 000 lignes.</p>
           </div>
           <div class="card">
             <p class="label-mono step">Étape 4</p>
             <h3>Résumé</h3>
-            <p>Par Gemini, en file d'attente cadencée pour tenir dans le plan gratuit. Le cache est sauvegardé après chaque résumé, un texte non résumé attend simplement le passage suivant.</p>
+            <p>Via Google Gemini, en file d'attente cadencée pour tenir dans le plan gratuit. Le cache est sauvegardé après chaque résumé, un texte non résumé attend simplement le passage suivant.</p>
           </div>
           <div class="card">
             <p class="label-mono step">Étape 5</p>
             <h3>Publication</h3>
-            <p>Le flux RSS est régénéré depuis le cache. Un texte n'y entre qu'une fois résumé.</p>
+            <p>Du flux RSS régénéré depuis le cache. Un texte n'y entre qu'une fois résumé.</p>
           </div>
         </div>
-        <p class="intro" style="margin-top:2rem">Les fichiers de travail sont versionnés dans le dépôt, c'est la mémoire de l'outil :</p>
+        <p class="intro" style="margin-top:2rem">Les fichiers de travail sont versionnés dans le dépôt :</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th scope="col">Fichier</th><th scope="col">Rôle</th></tr></thead>
             <tbody>
-              <tr><td><code>legifrance-jorf.feed.xml</code></td><td>Le flux RSS, à mettre dans ton lecteur</td></tr>
+              <tr><td><code>legifrance-jorf.feed.xml</code></td><td>Le flux RSS</td></tr>
               <tr><td><code>legifrance-jorf.cache.json</code></td><td>Les textes retenus, leur contenu intégral et leur résumé</td></tr>
               <tr><td><code>legifrance-jorf.ignored.json</code></td><td>Les textes écartés, avec leur titre, pour auditer le filtre</td></tr>
+              <tr><td><code>site/</code></td><td>Cette page, publiée sur GitHub Pages, avec ses polices et son logo</td></tr>
             </tbody>
           </table>
         </div>
       </section>
 
-      <section class="block" id="installation">
-        <p class="label-mono kicker">04 · Le faire tourner chez toi</p>
+      <section class="block" id="local">
+        <p class="label-mono kicker">04 · Faire tourner les flux en local</p>
         <h2>Trois clés, une commande.</h2>
-        <p class="intro">Il te faut <a href="https://deno.com">Deno</a> 2, un compte <a href="https://piste.gouv.fr">PISTE</a> avec une application abonnée à l'API Légifrance, et une clé <a href="https://aistudio.google.com">Gemini</a> (le plan gratuit suffit). Crée un fichier <code>.env</code> :</p>
+        <p class="intro"><a href="https://deno.com">Deno</a>, un compte <a href="https://piste.gouv.fr">PISTE</a> et une clé <a href="https://aistudio.google.com">Gemini</a> (le plan gratuit suffit) sont requis. Créer un fichier <code>.env</code> :</p>
 <pre>LEGIFRANCE_CLIENT_ID=...
 LEGIFRANCE_CLIENT_SECRET=...
 GEMINI_API_KEY=...</pre>
         <p class="intro">Puis :</p>
 <pre>deno run --allow-net --allow-env --allow-read --allow-write --env-file=.env legifrance-jorf.ts</pre>
-        <p class="intro">Pour tester sans consommer ton quota Gemini, ajoute <code>--no-gemini</code> : le scrape et le flux se font, les résumés attendent.</p>
+        <p class="intro">Pour tester sans consommer le quota Gemini, l'option <code>--no-gemini</code> lance le scrape et la génération du flux sans les résumés.</p>
 
         <h3 style="margin-top:2rem;font-size:1.1rem">Réglages</h3>
         <p class="intro">Tout se pilote par variables d'environnement, aucune n'est obligatoire :</p>
@@ -315,27 +328,24 @@ GEMINI_API_KEY=...</pre>
               <tr><td><code>GEMINI_MODELS</code></td><td><code>gemini-3.5-flash-lite,gemini-3.6-flash</code></td><td>Chaîne de modèles. Un modèle en 404 ou à quota épuisé passe la main au suivant</td></tr>
               <tr><td><code>GEMINI_RPM</code></td><td><code>10</code></td><td>Requêtes par minute autorisées</td></tr>
               <tr><td><code>GEMINI_TPM</code></td><td><code>250000</code></td><td>Jetons par minute autorisés, budget glissant sur 60 s basé sur la consommation réelle</td></tr>
-              <tr><td><code>GEMINI_MAX_PER_RUN</code></td><td><code>100</code></td><td>Résumés maximum par passage, le reste attend le suivant</td></tr>
+              <tr><td><code>GEMINI_MAX_PER_RUN</code></td><td><code>100</code></td><td>Résumés maximum par passage</td></tr>
               <tr><td><code>GEMINI_ENABLED</code></td><td><code>true</code></td><td><code>false</code> équivaut à <code>--no-gemini</code></td></tr>
               <tr><td><code>FEED_URL</code></td><td>vide</td><td>URL publique du flux, pour le lien <code>self</code> du RSS</td></tr>
               <tr><td><code>FEED_LINK</code></td><td>Légifrance</td><td>Lien du canal RSS</td></tr>
             </tbody>
           </table>
         </div>
-        <p class="intro">Les termes de recherche, les motifs de pertinence, les exclusions de titres et les seuils sont en tête de <code>legifrance-jorf.ts</code>, commentés. Si tu vois un texte utile dans <code>legifrance-jorf.ignored.json</code>, ajoute un motif et il sera repris au passage suivant.</p>
+        <p class="intro">Les termes de recherche, les motifs de pertinence, les exclusions de titres et les seuils sont en tête de <code>legifrance-jorf.ts</code>, commentés.</p>
 
         <h3 style="margin-top:2rem;font-size:1.1rem">En automatique</h3>
-        <p class="intro">Le workflow <code>.github/workflows/legifrance-jorf.yml</code> lance le script chaque matin, commite les fichiers s'ils ont changé, puis publie les flux et cette page sur GitHub Pages. Il attend trois secrets dans le dépôt : <code>LEGIFRANCE_CLIENT_ID</code>, <code>LEGIFRANCE_CLIENT_SECRET</code> et <code>GEMINI_API_KEY</code>.</p>
-        <ol class="steps">
-          <li><strong>Pages</strong> : dans les réglages du dépôt, choisir la source « GitHub Actions ».</li>
-          <li><strong>Premier déploiement</strong> : à la main depuis l'onglet Actions, « Run workflow ». Les suivants sont automatiques.</li>
-        </ol>
+        <p class="intro">Le workflow <code>.github/workflows/legifrance-jorf.yml</code> lance le script chaque matin à 06:17 UTC, commite les fichiers s'ils ont changé, puis publie <code>site/</code> et les flux sur GitHub Pages. Il attend trois secrets dans le dépôt : <code>LEGIFRANCE_CLIENT_ID</code>, <code>LEGIFRANCE_CLIENT_SECRET</code> et <code>GEMINI_API_KEY</code>.</p>
+        <p class="intro">Pour activer la publication, une seule manipulation : dans les réglages du dépôt, section Pages, choisir la source « GitHub Actions ». Le premier déploiement se déclenche à la main depuis l'onglet Actions (« Run workflow »), les suivants sont automatiques.</p>
       </section>
 
       <section class="block" id="a-savoir">
         <p class="label-mono kicker">05 · À savoir</p>
-        <h2>Un coup d'avance, pas un avis juridique.</h2>
-        <p class="intro">Les résumés sont générés par une IA. Ils aident à repérer vite ce qui te concerne, ils ne remplacent pas la lecture du texte, et n'ont aucune valeur juridique. Le lien vers le texte intégral est dans chaque entrée.</p>
+        <h2>Un repère, pas un avis juridique.</h2>
+        <p class="intro">Les résumés sont générés par une IA. Ils aident à repérer vite ce qui concerne les agents et les gérants, mais ils ne remplacent pas la lecture du texte et n'ont aucune valeur juridique. Le lien vers le texte intégral est dans chaque entrée.</p>
         <p class="intro">Les textes proviennent de Légifrance (DILA), réutilisés sous <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/">Licence Ouverte 2.0</a>. Rien n'est modifié, seul le résumé est ajouté.</p>
       </section>
     </div>
@@ -350,7 +360,7 @@ GEMINI_API_KEY=...</pre>
           <span class="label-mono tag">Code source ouvert</span>
         </div>
       </div>
-      <p>Un outil proposé par <a href="https://seklyr.fr">SEKLYR</a>, parce que suivre le Journal officiel ne devrait pas être un second métier. Polices Geist (Vercel, SIL OFL 1.1), aucune requête vers un CDN, aucun traceur.</p>
+      <p>Proposé via <a href="https://seklyr.fr">SEKLYR</a>. Polices Geist (Vercel, SIL OFL 1.1) auto-hébergées, aucune requête vers un CDN, aucun traceur.</p>
     </div>
   </footer>
 
