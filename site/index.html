@@ -101,6 +101,19 @@
       font-size: 0.875rem; font-weight: 600; letter-spacing: 0.14em; text-decoration: none;
     }
     .brand img { width: 1.5rem; height: 1.5rem; }
+    .brand .os { margin-left: 0.25rem; border: 1px solid var(--color-border); padding: 0.15rem 0.4rem; color: var(--color-text-secondary); letter-spacing: 0.08em; }
+
+    /* Ruban d'angle « Fork me on GitHub », version angles droits et couleur d'accent. */
+    .ribbon { position: fixed; top: 0; right: 0; z-index: 50; width: 11rem; height: 11rem; overflow: hidden; pointer-events: none; }
+    .ribbon a {
+      position: absolute; top: 2rem; right: -3.4rem; width: 14rem; rotate: 45deg;
+      display: block; padding: 0.45rem 0; text-align: center; text-decoration: none;
+      background: var(--color-accent); color: #fff; font-weight: 600;
+      box-shadow: 0 0 0 1px rgb(255 255 255 / 0.15) inset; pointer-events: auto; transition: background 0.2s;
+    }
+    .ribbon a:hover { background: var(--color-accent-hover); }
+    @media (max-width: 48rem) { .ribbon { display: none; } }
+    @media (min-width: 48.01rem) { header.top nav { margin-right: 6.5rem; } } /* place pour le ruban */
     header.top nav ul { display: flex; gap: 1.75rem; margin: 0; padding: 0; list-style: none; }
     header.top nav a { color: var(--color-text-secondary); text-decoration: none; transition: color 0.2s; }
     header.top nav a:hover { color: var(--color-text-primary); }
@@ -201,15 +214,18 @@
 <body>
   <a href="#contenu" class="skip">Aller au contenu</a>
 
+  <div class="ribbon"><a class="label-mono" href="https://github.com/SEKLYR/secpriv-rss-bridge" target="_blank" rel="noopener">Fork me on GitHub</a></div>
+
   <header class="top">
     <div class="container">
-      <a href="#" class="brand"><img src="assets/seklyr-mark.png" alt="" width="24" height="24">SEKLYR</a>
+      <a href="#" class="brand"><img src="assets/seklyr-mark.png" alt="" width="24" height="24">SEKLYR<span class="label-mono os">Open source</span></a>
       <nav aria-label="Navigation">
         <ul>
           <li><a class="label-mono" href="#flux">Flux</a></li>
           <li><a class="label-mono" href="#direct">En direct</a></li>
           <li><a class="label-mono" href="#fonctionnement">Fonctionnement</a></li>
           <li><a class="label-mono" href="#local">En local</a></li>
+          <li><a class="label-mono" href="https://github.com/SEKLYR/secpriv-rss-bridge" target="_blank" rel="noopener">GitHub</a></li>
           <li><a class="label-mono" href="https://seklyr.fr">seklyr.fr</a></li>
         </ul>
       </nav>
