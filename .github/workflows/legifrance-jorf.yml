@@ -2,7 +2,14 @@ name: Veille sécurité privée — Journal officiel (Légifrance → RSS)
 
 on:
   schedule:
-    - cron: "17 6 * * *" # tous les jours à 06:17 UTC (le JO paraît le matin)
+    # Le JO paraît le matin. GitHub retarde librement les workflows planifiés
+    # (constaté : 06:17 UTC exécuté vers 11:10 UTC deux jours de suite), d'où
+    # plusieurs créneaux : le premier qui part publie, les suivants ne coûtent
+    # qu'une republication du flux avec une date fraîche.
+    - cron: "17 4 * * *" # 04:17 UTC
+    - cron: "17 6 * * *" # 06:17 UTC
+    - cron: "17 8 * * *" # 08:17 UTC
+    - cron: "17 10 * * *" # 10:17 UTC
   workflow_dispatch:
 
 permissions:
@@ -35,34 +42,32 @@ jobs:
           FEED_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/legifrance-jorf.feed.xml
         run: deno run --allow-net --allow-env --allow-read --allow-write legifrance-jorf.ts
 
-      - name: Commit du cache et du flux s'ils ont changé
-        id: commit
+      - name: Commit du cache et du flux si un texte a changé
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add legifrance-jorf.cache.json legifrance-jorf.ignored.json legifrance-jorf.feed.xml
-          if git diff --cached --quiet; then
-            echo "Rien de nouveau."
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+          # Le flux change à chaque passage (lastBuildDate) : seul le cache
+          # décide d'un commit, sinon l'historique se remplirait de bruit.
+          if git diff --cached --quiet -- legifrance-jorf.cache.json legifrance-jorf.ignored.json; then
+            echo "Aucun nouveau texte : flux republié avec sa nouvelle date, sans commit."
+            git reset -q
           else
             git commit -m "chore(legifrance-jorf): mise à jour du flux $(date -u +%Y-%m-%d)"
             git push
-            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # Déploiement Pages : à chaque changement, ou à la demande (workflow_dispatch) pour forcer une publication.
+      # Déploiement Pages à chaque passage : même sans nouveau texte, le flux
+      # publié porte la date du dernier passage (lastBuildDate), ce que lisent
+      # le serveur SEKLYR et le site vitrine comme signal de fraîcheur.
       - name: Assemblage du site
-        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         run: cp *.feed.xml site/
 
       - uses: actions/configure-pages@v5
-        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
 
       - uses: actions/upload-pages-artifact@v3
-        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         with:
           path: site
 
       - uses: actions/deploy-pages@v4
         id: deploy
-        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'

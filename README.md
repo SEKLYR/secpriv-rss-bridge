@@ -14,7 +14,7 @@ https://SEKLYR.github.io/secpriv-rss-bridge/legifrance-jorf.feed.xml
 
 Chaque entrée de ce flux contient le titre tel-quel du texte ainsi que sa date de publication, un résumé rédigé par IA et le lien vers le texte intégral sur le site https://www.legifrance.gouv.fr/ .
 
-Le flux se met à jour tous les matins à 06:17 UTC via **Github Actions**. 
+Le flux se met à jour chaque matin via **GitHub Actions** (créneaux 04:17, 06:17, 08:17 et 10:17 UTC : GitHub retarde parfois de plusieurs heures les workflows planifiés, le premier créneau qui part publie). 
 
 ### Comment ça marche
 
@@ -73,7 +73,7 @@ Les termes de recherche, les motifs de pertinence, les exclusions de titres et l
 
 ### En automatique
 
-Le workflow `.github/workflows/legifrance-jorf.yml` lance le script chaque matin à 06h17, commite les fichiers s'ils ont changé, puis publie `site/` (la page d'accueil et ses actifs) et les flux sur GitHub Pages. Il attend trois secrets dans le dépôt: `LEGIFRANCE_CLIENT_ID`, `LEGIFRANCE_CLIENT_SECRET` et `GEMINI_API_KEY`.
+Le workflow `.github/workflows/legifrance-jorf.yml` lance le script chaque matin (04:17, 06:17, 08:17 et 10:17 UTC, GitHub pouvant retarder chaque créneau de plusieurs heures), commite le cache si un texte a changé, puis publie à chaque passage `site/` (la page d'accueil et ses actifs) et les flux sur GitHub Pages. Il attend trois secrets dans le dépôt: `LEGIFRANCE_CLIENT_ID`, `LEGIFRANCE_CLIENT_SECRET` et `GEMINI_API_KEY`.
 
 Pour activer la publication, une seule manipulation: dans les réglages du dépôt, **Pages**, choisir la source **GitHub Actions**. Le premier déploiement se déclenche à la main depuis l'onglet Actions (« Run workflow »), les suivants sont automatiques.
 
