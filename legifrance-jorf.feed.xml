@@ -4,12 +4,31 @@
         <title>Veille sécurité privée – Journal officiel</title>
         <link>https://www.legifrance.gouv.fr/</link>
         <description>Lois, décrets et arrêtés publiés au JO concernant les activités privées de sécurité (livre VI du code de la sécurité intérieure, CNAPS).</description>
-        <lastBuildDate>Thu, 29 Oct 2026 10:51:50 GMT</lastBuildDate>
+        <lastBuildDate>Tue, 17 Nov 2026 13:16:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>secpriv-rss-bridge</generator>
         <language>fr</language>
         <copyright>Textes : Légifrance / DILA (Licence Ouverte 2.0). Résumés : générés par IA, sans valeur juridique.</copyright>
         <atom:link href="https://seklyr.github.io/secpriv-rss-bridge/legifrance-jorf.feed.xml" rel="self" type="application/rss+xml"/>
+        <item>
+            <title><![CDATA[Arrêté du 6 novembre 2026 relatif à la formation initiale et continue des agents privés de sécurité et portant modification de dispositions relatives à la sécurité privée]]></title>
+            <link>https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000055094742</link>
+            <guid isPermaLink="false">JORFTEXT000055094742</guid>
+            <pubDate>Tue, 17 Nov 2026 00:00:00 GMT</pubDate>
+            <description><![CDATA[Ce texte crée une formation initiale et continue spécifique pour la spécialité « surveillance de grands évènements » (rassemblant plus de 300 personnes). 
+
+Cette formation intègre notamment des modules sur la prévention des risques terroristes, le secourisme tactique, la gestion des conflits et les contrôles spécifiques (palpations, inspections visuelles). 
+
+Les agents détenteurs de cette mention devront suivre ces programmes de formation continue pour renouveler leur carte professionnelle.]]></description>
+            <content:encoded><![CDATA[Ce texte crée une formation initiale et continue spécifique pour la spécialité « surveillance de grands évènements » (rassemblant plus de 300 personnes). 
+
+Cette formation intègre notamment des modules sur la prévention des risques terroristes, le secourisme tactique, la gestion des conflits et les contrôles spécifiques (palpations, inspections visuelles). 
+
+Les agents détenteurs de cette mention devront suivre ces programmes de formation continue pour renouveler leur carte professionnelle.
+
+Texte intégral : https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000055094742]]></content:encoded>
+            <category>ARRETE</category>
+        </item>
         <item>
             <title><![CDATA[LOI n° 2026-798 du 18 août 2026 visant à offrir des réponses immédiates aux phénomènes troublant l'ordre public, la sécurité et la tranquillité de nos concitoyens (1)]]></title>
             <link>https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054707332</link>
